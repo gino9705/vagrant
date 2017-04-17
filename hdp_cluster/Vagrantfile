@@ -3,21 +3,21 @@
 
 servers = [
         {
-                :hostname => "hdp.master1",
+                :hostname => "master1",
                 :ip => "192.168.100.21",
                 :box => "centos/6",
                 :ram => 4096,
                 :cpu => 1
         },
         {
-                :hostname => "hdp.worker1",
+                :hostname => "worker1",
                 :ip => "192.168.100.22",
                 :box => "centos/6",
                 :ram => 4096,
                 :cpu => 1
         },
         {
-                :hostname => "hdp.worker2",
+                :hostname => "worker2",
                 :ip => "192.168.100.23",
                 :box => "centos/6",
                 :ram => 4096,                                                                                       
