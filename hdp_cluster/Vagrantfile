@@ -7,43 +7,55 @@ servers = [
                 :ip => "192.168.100.22",
                 :box => "centos/6",
                 :ram => 4096,
-                :cpu => 1
+                :cpu => 1,
+		:ansible => true
         },
         {
                 :hostname => "hdpw1",
                 :ip => "192.168.100.23",
                 :box => "centos/6",
                 :ram => 4096,
-                :cpu => 1
+                :cpu => 1,
+		:ansible => false
         },
         {
                 :hostname => "hdpw2",
                 :ip => "192.168.100.24",
                 :box => "centos/6",
                 :ram => 4096,
-		:cpu => 1
+		:cpu => 1,
+		:ansible => false
         }
 ]
 
-ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+ssh_private_key = "#{Dir.home}/.ssh/id_rsa"
+ssh_pub_key = "#{Dir.home}/.ssh/id_rsa.pub"
 
 Vagrant.configure(2) do |config|
+
         servers.each do |machine|
                 config.vm.define machine[:hostname] do |node|
+
+			#copying the public and private keys to the guests
+			node.vm.provision "file", source: "#{ssh_pub_key}", destination: "/tmp/authorized_keys"
+		        node.vm.provision "file", source: "#{ssh_private_key}", destination: "/tmp/id_rsa"
 			node.vm.provision "shell" do |s|
     				s.inline = <<-SHELL
-					mkdir -p /root/.ssh
-					chmod 700 /root/.ssh
-      					echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
-      					echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+					sudo mkdir -p /root/.ssh
+					sudo chmod 700 /root/.ssh
+					sudo mv /tmp/authorized_keys /root/.ssh/
+					sudo mv /tmp/id_rsa /root/.ssh/
     				SHELL
-  			end
+			end
+
+			#adding the hostname and ip address mapping in the hosts file
 			node.vm.provision :hosts do |h|
 				h.add_localhost_hostnames = false
                                 servers.each do |n|
                                         h.add_host n[:ip], [n[:hostname]]
                                 end
 			end
+
                         node.vm.box = machine[:box]
                         node.vm.hostname = machine[:hostname]
                         node.vm.network "private_network", ip: machine[:ip]
