@@ -1,0 +1,31 @@
+--- 
+- 
+  hosts: all
+  name: "hadoop installation using ambari"
+  roles: 
+    - geerlingguy.repo-epel
+  sudo: true
+  tasks: 
+    -
+      name: "enable sudo in scripts" 
+      lineinfile: "state=present create=yes dest=/etc/sudoers.d/888-dont-requiretty line=\"Defaults !requiretty\" backup=yes"
+    -
+      name: "install default packages"
+      with_items: 
+        - libselinux-python
+        - ntp
+        - wget
+        - screen
+        - java7-devel
+        - python-keyczar
+      yum: "name={{ item }} state=latest"
+    - 
+      name: "Disable selinux"
+      selinux: state=disabled
+    - 
+      name: "configure java"
+      template: "src=java.sh.j2 dest=/etc/profile.d/java.sh"
+    - 
+      name: "Stop and disable iptables at boot time"
+      service: "name=iptables state=stopped enabled=no"
+    
