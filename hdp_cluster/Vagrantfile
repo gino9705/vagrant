@@ -25,9 +25,25 @@ servers = [
         }
 ]
 
+ssh_pub_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
+
 Vagrant.configure(2) do |config|
         servers.each do |machine|
                 config.vm.define machine[:hostname] do |node|
+			node.vm.provision "shell" do |s|
+    				s.inline = <<-SHELL
+					mkdir -p /root/.ssh
+					chmod 700 /root/.ssh
+      					echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+      					echo #{ssh_pub_key} >> /root/.ssh/authorized_keys
+    				SHELL
+  			end
+			node.vm.provision :hosts do |h|
+				h.add_localhost_hostnames = false
+                                servers.each do |n|
+                                        h.add_host n[:ip], [n[:hostname]]
+                                end
+			end
                         node.vm.box = machine[:box]
                         node.vm.hostname = machine[:hostname]
                         node.vm.network "private_network", ip: machine[:ip]
