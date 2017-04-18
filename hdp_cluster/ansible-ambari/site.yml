@@ -1,31 +1,53 @@
 --- 
 - 
-  hosts: all
-  name: "hadoop installation using ambari"
-  roles: 
+  hosts : all
+  name : "common configuration"
+  roles : 
     - geerlingguy.repo-epel
-  sudo: true
-  tasks: 
+  sudo : true
+  tasks : 
     -
-      name: "enable sudo in scripts" 
-      lineinfile: "state=present create=yes dest=/etc/sudoers.d/888-dont-requiretty line=\"Defaults !requiretty\" backup=yes"
+      name : "enable sudo in scripts" 
+      lineinfile : "state=present create=yes dest=/etc/sudoers.d/888-dont-requiretty line=\"Defaults !requiretty\" backup=yes"
     -
-      name: "install default packages"
-      with_items: 
+      name : "install default packages"
+      with_items : 
         - libselinux-python
         - ntp
         - wget
         - screen
         - java7-devel
         - python-keyczar
-      yum: "name={{ item }} state=latest"
+      yum : "name={{ item }} state=latest"
     - 
-      name: "Disable selinux"
-      selinux: state=disabled
+      name : "Disable selinux"
+      selinux : state=disabled
     - 
-      name: "configure java"
-      template: "src=java.sh.j2 dest=/etc/profile.d/java.sh"
+      name : "configure java"
+      template : "src=java.sh.j2 dest=/etc/profile.d/java.sh"
     - 
-      name: "Stop and disable iptables at boot time"
-      service: "name=iptables state=stopped enabled=no"
-    
+      name : "Stop and disable iptables at boot time"
+      service : "name=iptables state=stopped enabled=no"
+-
+  hosts : ambari
+  name : "installing ambari server"
+  sudo : true
+  tasks :
+    -
+      name : "install ambari repo"
+      get_url : "url={{ ambari_repo_url }} dest=/etc/yum.repos.d/ambari.repo"   
+    -
+      name : "install ambari-server"
+      yum : "name=ambari-server state=latest"
+    - 
+      name : "configure ambari-server"
+      shell : "ambari-server setup -j {{ java_home }} -s > /tmp/ambari-install-output executable=/bin/bash"
+    - 
+      name : "check if ambari-server is installed"
+      wait_for : "path=/tmp/ambari-install-output search_regex=\"completed successfully\""
+    - 
+      name : "start ambari server and enabled at reboot"
+      service : "name=ambari-server state=restarted enabled=yes"
+    - 
+      name : "check if ambari-server is up"
+      wait_for : "host=127.0.0.1 port=8080 delay=10"
