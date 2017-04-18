@@ -3,24 +3,24 @@
 
 servers = [
         {
-                :hostname => "master1",
-                :ip => "192.168.100.21",
-                :box => "centos/6",
-                :ram => 4096,
-                :cpu => 1
-        },
-        {
-                :hostname => "worker1",
+                :hostname => "hdpm1",
                 :ip => "192.168.100.22",
                 :box => "centos/6",
                 :ram => 4096,
                 :cpu => 1
         },
         {
-                :hostname => "worker2",
+                :hostname => "hdpw1",
                 :ip => "192.168.100.23",
                 :box => "centos/6",
-                :ram => 4096,                                                                                       
+                :ram => 4096,
+                :cpu => 1
+        },
+        {
+                :hostname => "hdpw2",
+                :ip => "192.168.100.24",
+                :box => "centos/6",
+                :ram => 4096,
 		:cpu => 1
         }
 ]
@@ -35,6 +35,7 @@ Vagrant.configure(2) do |config|
                                 vb.memory = machine[:ram]
                                 vb.cpus = machine[:cpu]
                                 vb.customize ["modifyvm", :id, "--nestedpaging", "off"]
+				vb.customize ["modifyvm", :id, "--accelerate3d", "off"]
                         end
                 end
         end
