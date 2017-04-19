@@ -21,7 +21,7 @@
         - python-keyczar
       yum : "name={{ item }} state=latest"
     - 
-      name : "Disable selinux"
+      name : "disable selinux"
       selinux : state=disabled
     - 
       name : "configure java"
