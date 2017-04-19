@@ -27,8 +27,22 @@
       name : "configure java"
       template : "src=java.sh.j2 dest=/etc/profile.d/java.sh"
     - 
-      name : "Stop and disable iptables at boot time"
+      name : "stop and disable iptables at boot time"
       service : "name=iptables state=stopped enabled=no"
+    - 
+      name : "start and enable ntp"
+      service : name=ntpd state=started enabled=yes
+    - 
+      name : "stop and disable iptables6"
+      service : name=iptables6 state=stopped enabled=no
+    - 
+      name : "disable transparent hugepage"
+      shell : echo 'for i in /sys/kernel/mm/*transparent_hugepage/enabled; do echo never > $i; done' >> /etc/rc.local
+      shell : echo 'for i in /sys/kernel/mm/*transparent_hugepage/defrag; do echo never > $i; done' >> /etc/rc.local
+      shell : echo 'for i in /sys/kernel/mm/*transparent_hugepage/khugepaged/defrag; do echo no > $i; done' >> /etc/rc.local
+      shell : for i in /sys/kernel/mm/*transparent_hugepage/enabled; do echo never > $i; done
+      shell : for i in /sys/kernel/mm/*transparent_hugepage/defrag; do echo never > $i; done
+      shell : for i in /sys/kernel/mm/*transparent_hugepage/khugepaged/defrag; do echo no $i; done
 -
   hosts : ambari
   name : "installing ambari server"
