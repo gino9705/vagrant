@@ -33,9 +33,6 @@
       name : "start and enable ntp"
       service : name=ntpd state=started enabled=yes
     - 
-      name : "stop and disable iptables6"
-      service : name=iptables6 state=stopped enabled=no
-    - 
       name : "disable transparent hugepage"
       shell : echo 'for i in /sys/kernel/mm/*transparent_hugepage/enabled; do echo never > $i; done' >> /etc/rc.local
       shell : echo 'for i in /sys/kernel/mm/*transparent_hugepage/defrag; do echo never > $i; done' >> /etc/rc.local
