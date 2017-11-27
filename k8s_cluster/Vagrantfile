@@ -1,0 +1,82 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+servers = [
+        {
+                :hostname => "k8s1",
+		:ip1 => "192.168.121.22",
+        	:ip2 => "192.168.112.22",
+                :box => "ubuntu/xenial64",
+                :ram => 8192,
+                :cpu => 4
+        },
+        {
+                :hostname => "k8s2",
+		:ip1 => "192.168.121.23",
+        	:ip2 => "192.168.112.23",
+                :box => "ubuntu/xenial64",
+                :ram => 8192,
+                :cpu => 4
+        }
+]
+
+#Need to generate the public and private keys prior to running the script
+ssh_private_key = "#{Dir.home}/.ssh/id_rsa"
+ssh_pub_key = "#{Dir.home}/.ssh/id_rsa.pub"
+
+Vagrant.configure(2) do |config|
+
+	#Configuring the host and guest machines sync folder
+	config.vm.synced_folder ".", "/vagrant", :nfs => true
+
+        servers.each do |machine|
+                config.vm.define machine[:hostname] do |node|
+
+			#copying the public and private keys to the guests
+			node.vm.provision "file", source: "#{ssh_pub_key}", destination: "/tmp/authorized_keys"
+		        node.vm.provision "file", source: "#{ssh_private_key}", destination: "/tmp/id_rsa"
+			node.vm.provision "shell" do |s|
+    				s.inline = <<-SHELL
+					sudo mkdir -p /root/.ssh
+					sudo chmod 700 /root/.ssh
+					sudo mv /tmp/id_rsa /root/.ssh/
+					sudo mv /tmp/authorized_keys /root/.ssh/
+					sudo chmod 600 /root/.ssh/id_rsa
+					sudo chmod 644 /root/.ssh/authorized_keys
+					sudo chown root:root /root/.ssh/*
+    				SHELL
+			end
+
+			#adding the hostname and ip address mapping in the hosts file
+			node.vm.provision :hosts do |h|
+				h.add_localhost_hostnames = false
+                                servers.each do |n|
+                                        h.add_host n[:ip1], [n[:hostname]]
+                                end
+			end
+
+                        node.vm.box = machine[:box]
+                        node.vm.hostname = machine[:hostname]
+                        node.vm.network "private_network", ip: machine[:ip1]
+			node.vm.network "private_network", ip: machine[:ip2]
+
+                        node.vm.provider "virtualbox" do |vb|
+				
+				vb.name = machine[:hostname]	
+                                vb.memory = machine[:ram]
+                                vb.cpus = machine[:cpu]
+                                vb.customize ["modifyvm", :id, "--nestedpaging", "on"]
+				vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
+
+				#Attaching the second disk
+				second_disk = File.join('storage', vb.name, 'disk2.vdi')
+				unless File.exist?(second_disk)
+					vb.customize ['createhd', '--filename', second_disk, '--format', 'VDI', '--size', 30 * 1024]
+				end
+				vb.customize ['storageattach', :id, '--storagectl', 'SCSI', '--port', 3, '--device', 0, '--type', 'hdd', '--medium', second_disk]
+                        end
+                end
+        end
+end
+
+
