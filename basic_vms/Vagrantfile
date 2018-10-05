@@ -2,18 +2,18 @@
 # vi: set ft=ruby :
 
 servers = [
+        #{
+        #        :hostname => "host2",
+	#	:ip1 => "192.168.100.11",
+        #	:ip2 => "192.168.101.11",
+        #        :box => "ubuntu/xenial64",
+        #        :ram => 8192,
+        #        :cpu => 4
+        #},
         {
-                :hostname => "k8s1",
-		:ip1 => "192.168.121.22",
-        	:ip2 => "192.168.112.22",
-                :box => "ubuntu/xenial64",
-                :ram => 8192,
-                :cpu => 4
-        },
-        {
-                :hostname => "k8s2",
-		:ip1 => "192.168.121.23",
-        	:ip2 => "192.168.112.23",
+                :hostname => "host1",
+		:ip1 => "192.168.100.10",
+        	:ip2 => "192.168.101.10",
                 :box => "ubuntu/xenial64",
                 :ram => 8192,
                 :cpu => 4
